@@ -152,7 +152,11 @@ def ensure_search_index():
 # ---- Routes: pages ------------------------------------------------------
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template(
+        "index.html",
+        speech_key=SPEECH_KEY,
+        speech_region=SPEECH_REGION
+    )
 
 
 @app.route("/api/health")

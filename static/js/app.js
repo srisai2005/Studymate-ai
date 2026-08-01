@@ -264,55 +264,75 @@
   }
 
   // ---------- Voice question (speech-to-text) ----------
-  let mediaRecorder = null;
-  let audioChunks = [];
-  let isRecording = false;
+const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+    window.SPEECH_KEY,
+    window.SPEECH_REGION
+);
 
-  micBtn.addEventListener("click", async () => {
-    if (!isRecording) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-        mediaRecorder.onstop = handleRecordingStop;
-        mediaRecorder.start();
-        isRecording = true;
+speechConfig.speechRecognitionLanguage = "en-US";
+
+let recognizer = null;
+let listening = false;
+
+micBtn.addEventListener("click", async () => {
+
+    if (!listening) {
+
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+
+        recognizer = new SpeechSDK.SpeechRecognizer(
+            speechConfig,
+            audioConfig
+        );
+
+        listening = true;
+
         micBtn.classList.add("recording");
-        askHint.textContent = "Listening… click the mic again to stop.";
-      } catch (err) {
-        askHint.textContent = "Microphone access denied or unavailable.";
-        askHint.classList.add("error");
-      }
-    } else {
-      mediaRecorder.stop();
-      isRecording = false;
-      micBtn.classList.remove("recording");
-    }
-  });
+        askHint.textContent = "Listening...";
 
-  async function handleRecordingStop() {
-    askHint.textContent = "Transcribing…";
-    const blob = new Blob(audioChunks, { type: "audio/webm" });
-    const formData = new FormData();
-    formData.append("audio", blob, "question.webm");
+        recognizer.recognizeOnceAsync(
 
-    try {
-      const res = await fetch("/api/stt", { method: "POST", body: formData });
-      const data = await res.json();
-      askHint.textContent = "";
-      if (!res.ok) {
-        askHint.textContent = data.error || "Could not transcribe audio.";
-        askHint.classList.add("error");
-        return;
-      }
-      questionInput.value = data.text;
-      submitQuestion();
-    } catch (err) {
-      askHint.textContent = "Network error: " + err.message;
-      askHint.classList.add("error");
+            result => {
+
+                listening = false;
+
+                micBtn.classList.remove("recording");
+
+                if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+
+                    questionInput.value = result.text;
+
+                    askHint.textContent = "";
+
+                    submitQuestion();
+
+                } else {
+
+                    askHint.textContent = "Couldn't understand.";
+
+                }
+
+                recognizer.close();
+
+            },
+
+            err => {
+
+                listening = false;
+
+                micBtn.classList.remove("recording");
+
+                askHint.textContent = err;
+
+                recognizer.close();
+
+            }
+
+        );
+
     }
-  }
+
+});
 
   function escapeHtml(str) {
     const div = document.createElement("div");

@@ -73,4 +73,5 @@ jobs:
         with:
           app-name: 'Studymate-ai'
           slot-name: 'Production'
+          package: .
           

@@ -108,11 +108,13 @@
 <footer>
   <p>Built for Season of AI 2.0 · Azure AI Vision · Azure AI Language · Azure OpenAI · Azure AI Search · Azure AI Speech</p>
 </footer>
-  <script>
+<script>
 window.SPEECH_KEY = "{{ speech_key }}";
 window.SPEECH_REGION = "{{ speech_region }}";
 </script>
-<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
